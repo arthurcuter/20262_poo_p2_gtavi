@@ -5,7 +5,7 @@ import lombok.*;
 @Getter
 @AllArgsConstructor
 
-public class Carro {
+public class Carro implements Comparable<Carro> {
     private String modelo;
     private int potencia;
 
@@ -16,5 +16,22 @@ public class Carro {
     @Override
     public String toString() {
         return String.format("%s (%d cv)", modelo, potencia);
+    }
+
+   @Override
+    public boolean equals(Object obj) {
+        if (obj == null)
+            return false;
+        Carro outro = (Carro) obj;
+        return this.modelo.equals(outro.modelo);
+    }
+
+    @Override
+    public int compareTo(Carro outro) {
+        if (this.potencia > outro.potencia)
+            return -1;
+        if (this.potencia < outro.potencia)
+            return 1;
+        return this.modelo.compareTo(outro.modelo);
     }
 }
