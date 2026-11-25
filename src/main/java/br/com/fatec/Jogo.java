@@ -1,5 +1,6 @@
 package br.com.fatec;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
@@ -19,6 +20,7 @@ public class Jogo {
                     jogarCampeonato();
                     break;
                 case 2:
+                    ranking();
                     break;
                 case 0:
                     JOptionPane.showMessageDialog(null, "Ate a proxima!");
@@ -38,9 +40,9 @@ public class Jogo {
         Piloto piloto;
         Concessionaria concessionaria = new Concessionaria();
         Campeonato campeonato = new Campeonato();
-        while(!(op == 1 || op == 2)) {
+        while (!(op == 1 || op == 2)) {
             op = Integer.parseInt(JOptionPane.showInputDialog("Escolha um piloto:\n1-Jason\n2-Lucia"));
-            
+
             switch (op) {
                 case 1:
                     nomePiloto = "Jason";
@@ -67,13 +69,15 @@ public class Jogo {
         int corridas = 1;
         int nitros = NITROS;
         Random random = new Random();
-        while(corridas <= CORRIDAS) {
-            int nitroOp = Integer.parseInt(JOptionPane.showInputDialog("Corrida " + corridas + "/" + CORRIDAS + "\n" + montaClassificacao(campeonato.getClassificacao()) + "\nUsar nitro? 1-Sim 2-Nao (restam " + nitros + ")"));
+        while (corridas <= CORRIDAS) {
+            int nitroOp = Integer.parseInt(JOptionPane.showInputDialog(
+                    "Corrida " + corridas + "/" + CORRIDAS + "\n" + montaClassificacao(campeonato.getClassificacao())
+                            + "\nUsar nitro? 1-Sim 2-Nao (restam " + nitros + ")"));
             boolean nitro = false;
 
-            if(nitroOp == 1 && nitros <= 0) {
+            if (nitroOp == 1 && nitros <= 0) {
                 JOptionPane.showMessageDialog(null, "Sem nitro restante");
-            }else if (nitroOp == 1 && nitros > 0) {
+            } else if (nitroOp == 1 && nitros > 0) {
                 nitro = true;
                 nitros--;
             } else {
@@ -82,7 +86,7 @@ public class Jogo {
             List<Piloto> chegada = campeonato.disputarCorrida(random, piloto, nitro);
             int i = 1;
             StringBuilder sb = new StringBuilder();
-            for(Piloto p : chegada) {
+            for (Piloto p : chegada) {
                 sb.append(i + ". " + p.getNome() + " - " + p.getTempo() + "s\n");
                 i++;
             }
@@ -91,31 +95,51 @@ public class Jogo {
         }
         int posicao = 0;
         int i = 1;
-        for(Piloto p : campeonato.getClassificacao()) {
-            if(p.equals(piloto)) posicao = i;
+        for (Piloto p : campeonato.getClassificacao()) {
+            if (p.equals(piloto))
+                posicao = i;
             i++;
         }
         String mensagem = posicao == 1 ? "Campeao de Vice City!" : "Posicao final: " + posicao;
         JOptionPane.showMessageDialog(null, montaClassificacao(campeonato.getClassificacao()) + "\n" + mensagem);
 
         Partida partida = Partida.builder().jogador(nome).pontuacao(piloto.getPontos()).build();
-        if(PartidaDAO.cadastrar(partida)) {
+        if (PartidaDAO.cadastrar(partida)) {
             JOptionPane.showMessageDialog(null, "Partida salva");
         } else {
             JOptionPane.showMessageDialog(null, "Erro ao salvar a partida");
         }
 
-
     }
 
-    public static String montaClassificacao (List<Piloto> pilotos) {
+    public static String montaClassificacao(List<Piloto> pilotos) {
         StringBuilder sb = new StringBuilder();
         int i = 1;
-        for(Piloto p : pilotos) {
+        for (Piloto p : pilotos) {
             sb.append(i + ". " + p + "\n");
             i++;
         }
         return sb.toString();
+    }
+
+    public static void ranking() {
+        List<Partida> partidas = PartidaDAO.listar();
+        partidas.sort(new Comparator<Partida>() {
+            @Override
+            public int compare(Partida p1, Partida p2) {
+                if (p1.getPontuacao() > p2.getPontuacao())
+                    return -1;
+                if (p1.getPontuacao() < p2.getPontuacao())
+                    return 1;
+                return 0;
+            }
+        });
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < partidas.size() && i < 5; i++) {
+            Partida p = partidas.get(i);
+            sb.append((i + 1) + ". " + p.getJogador() + " - " + p.getPontuacao() + " pontos\n");
+        }
+        JOptionPane.showMessageDialog(null, "RANKING\n" + sb);
     }
 
 }
